@@ -396,39 +396,6 @@ The selected champion model is written to the `models/` directory during local e
 
 ---
 
-## Example Monitoring Output
-
-After a monitoring run, the pipeline writes a deployment report similar to:
-
-```text
-# Model Deployment and Monitoring Report
-
-## Champion Model
-- Selected model: gradient_boosting
-- ROC-AUC: 0.xxxx
-- F1: 0.xxxx
-- Precision: 0.xxxx
-- Recall: 0.xxxx
-
-## Monitoring Decision
-- Drift alert level: pass/warn/fail
-- Failed features: n
-- Warning features: n
-- Retrain recommended: true/false
-```
-
-The exact metrics depend on the data window and sample used.
-
-Generated outputs are saved under:
-
-```text
-models/
-reports/model/
-reports/drift/
-```
-
----
-
 ## Local Setup and Execution
 
 This project can be run in two ways:
@@ -438,50 +405,44 @@ This project can be run in two ways:
 
 ---
 
+## Local Setup and Execution
+
+This project can be executed in two modes:
+
+1. **Local Python mode** — validates the machine learning and monitoring pipeline using the sample dataset.
+2. **Docker + PostgreSQL + Airflow mode** — runs the full MLOps workflow with database extraction and Airflow orchestration.
+
+---
+
 ## 1. Run Locally Without Docker
 
-Use this option first to confirm that the Python package, tests, model training, and monitoring pipeline work correctly.
+Use this option first to confirm that the Python package, tests, model training, and monitoring logic are working correctly.
 
-Open PowerShell or the VS Code terminal from the project root:
+From the project root:
 
 ```powershell
 cd "D:\Banking and Finance\Projects\bank-loan-model-monitoring-airflow-docker"
 ```
 
-Create a virtual environment:
+Create and activate a virtual environment:
 
 ```powershell
 python -m venv .venv
-```
-
-Activate the virtual environment:
-
-```powershell
 .\.venv\Scripts\activate
 ```
 
-Upgrade pip:
+Upgrade pip and install the project with development dependencies:
 
 ```powershell
 python -m pip install --upgrade pip
-```
-
-Install the project with development dependencies:
-
-```powershell
 pip install -e ".[dev]"
 ```
 
-Run the test suite:
+Run code quality checks and tests:
 
 ```powershell
+python -m ruff check src tests airflow/dags
 pytest
-```
-
-Expected result:
-
-```text
-5 passed
 ```
 
 Run the local monitoring pipeline using the sample dataset:
@@ -490,31 +451,15 @@ Run the local monitoring pipeline using the sample dataset:
 python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source sample
 ```
 
-After the pipeline runs successfully, check:
-
-```text
-models/
-reports/model/
-reports/drift/
-```
-
-Expected generated outputs include:
-
-```text
-models/champion_model.joblib
-reports/model/..._deployment_report.md
-reports/drift/..._monitoring_report.json
-```
-
-This confirms that the ML training, evaluation, and monitoring pipeline works without PostgreSQL, Docker, or Airflow.
+This validates the model training, evaluation, drift-checking, and reporting workflow without requiring PostgreSQL, Docker, or Airflow.
 
 ---
 
 ## 2. Run With Docker, PostgreSQL, and Airflow
 
-Use this option after the local Python workflow works successfully.
+Use this option after the local Python workflow runs successfully.
 
-Make sure Docker Desktop is open and running.
+Make sure **Docker Desktop** is open and running.
 
 From the project root:
 
@@ -540,7 +485,7 @@ Check that the containers are running:
 docker compose ps
 ```
 
-You should see services similar to:
+The stack should include services similar to:
 
 ```text
 postgres
@@ -549,10 +494,10 @@ airflow-webserver
 airflow-scheduler
 ```
 
-Open Airflow in your browser:
+Open Airflow in the browser:
 
 ```text
-http://localhost:8080
+http://127.0.0.1:8080
 ```
 
 Login credentials:
@@ -566,37 +511,29 @@ password: admin
 
 ## 3. Load Sample Data Into PostgreSQL
 
-After Docker containers are running, load the sample loan application data into PostgreSQL:
+After the Docker containers are running, load the sample loan application data into PostgreSQL:
 
 ```powershell
 docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/load_sample_to_postgres.py
 ```
 
-Expected output:
+Verify that records were loaded:
 
-```text
-Loaded ... rows into loan_applications.
+```powershell
+docker compose exec postgres psql -U mlops -d loan_monitoring -c "SELECT COUNT(*) FROM loan_applications;"
 ```
 
 ---
 
 ## 4. Run the PostgreSQL Monitoring Pipeline Manually
 
-After the sample data is loaded into PostgreSQL, run the monitoring pipeline from inside the Airflow container:
+After the sample data is loaded, run the monitoring pipeline from inside the Airflow scheduler container:
 
 ```powershell
 docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source postgres
 ```
 
-This command runs the full monitoring workflow using PostgreSQL as the data source.
-
-After the run completes, check:
-
-```text
-models/
-reports/model/
-reports/drift/
-```
+This runs the full monitoring workflow using PostgreSQL as the data source.
 
 ---
 
@@ -605,7 +542,7 @@ reports/drift/
 Open Airflow:
 
 ```text
-http://localhost:8080
+http://127.0.0.1:8080
 ```
 
 Go to the DAGs page and find:
@@ -622,28 +559,24 @@ Click the play button:
 ▶ Trigger DAG
 ```
 
-After the DAG finishes, check the generated outputs:
-
-```text
-models/
-reports/model/
-reports/drift/
-```
+The DAG runs the monitoring workflow through Airflow orchestration.
 
 ---
 
 ## Full Workflow From Scratch
 
-Use the following sequence to run the complete project from a fresh setup:
+The following command sequence runs the complete project from a fresh setup:
 
 ```powershell
 cd "D:\Banking and Finance\Projects\bank-loan-model-monitoring-airflow-docker"
 
 python -m venv .venv
 .\.venv\Scripts\activate
+
 python -m pip install --upgrade pip
 pip install -e ".[dev]"
 
+python -m ruff check src tests airflow/dags
 pytest
 
 python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source sample
@@ -655,15 +588,18 @@ docker compose ps
 
 docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/load_sample_to_postgres.py
 
+docker compose exec postgres psql -U mlops -d loan_monitoring -c "SELECT COUNT(*) FROM loan_applications;"
+
 docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source postgres
 ```
 
-Then trigger the DAG from the Airflow UI:
+Then open Airflow and trigger the DAG:
 
 ```text
-http://localhost:8080
+http://127.0.0.1:8080
+
 DAG: bank_loan_model_monitoring
-Click ▶ Trigger DAG
+Action: ▶ Trigger DAG
 ```
 
 ---
@@ -672,7 +608,7 @@ Click ▶ Trigger DAG
 
 ### Docker image pull fails with EOF
 
-If Docker fails while pulling `postgres:15` or `apache/airflow`, retry the image pull manually:
+If Docker fails while pulling `postgres:15` or `apache/airflow`, retry the image pulls manually:
 
 ```powershell
 docker pull postgres:15
@@ -681,15 +617,17 @@ docker pull apache/airflow:2.9.3-python3.10
 
 If downloads continue to fail, restart Docker Desktop and retry.
 
-### Airflow does not open on localhost
+---
 
-Check containers:
+### Airflow does not open in the browser
+
+Check whether the containers are running:
 
 ```powershell
 docker compose ps
 ```
 
-Check Airflow logs:
+Check the Airflow webserver logs:
 
 ```powershell
 docker compose logs -f airflow-webserver
@@ -697,25 +635,57 @@ docker compose logs -f airflow-webserver
 
 Airflow can take 1 to 3 minutes to become available after startup.
 
-### PostgreSQL data load fails because config is not found
+Use this URL:
 
-Use the corrected command with the working directory flag:
+```text
+http://127.0.0.1:8080
+```
+
+---
+
+### PostgreSQL pipeline returns zero rows
+
+If the PostgreSQL pipeline fails because no records are available, reload the sample data:
 
 ```powershell
 docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/load_sample_to_postgres.py
 ```
 
+Then verify the record count:
+
+```powershell
+docker compose exec postgres psql -U mlops -d loan_monitoring -c "SELECT COUNT(*) FROM loan_applications;"
+```
+
+After confirming that the table contains records, rerun the PostgreSQL monitoring pipeline:
+
+```powershell
+docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source postgres
+```
+
+---
+
+### PostgreSQL data load fails because the config file is not found
+
+Use the command with the working-directory flag:
+
+```powershell
+docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/load_sample_to_postgres.py
+```
+
+The `-w /opt/airflow/project` flag ensures the script runs from the correct project directory inside the container.
+
 ---
 
 ## Stopping and Restarting the Project
 
-When the work is finished, stop the containers safely:
+When finished, stop the containers safely:
 
 ```powershell
 docker compose stop
 ```
 
-To start the containers again later:
+To start the same containers again later:
 
 ```powershell
 docker compose start
@@ -744,34 +714,6 @@ data/sample/loan_applications_sample.csv
 ```
 
 Raw production data, credentials, generated datasets, and trained model binaries should not be committed to a public GitHub repository.
-
----
-
-## What Not to Commit
-
-Do not commit raw confidential data, processed datasets, model binaries, local environment folders, credentials, or generated database volumes.
-
-Recommended `.gitignore` coverage:
-
-```gitignore
-.env
-.venv/
-__pycache__/
-.ipynb_checkpoints/
-.pytest_cache/
-
-data/processed/*
-models/*.joblib
-models/*.pkl
-reports/model/*
-reports/drift/*
-
-*.db
-*.sqlite
-*.log
-```
-
-Sample data and non-sensitive example reports may be committed if they are safe for public portfolio use.
 
 ---
 
