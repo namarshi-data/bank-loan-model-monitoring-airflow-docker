@@ -155,11 +155,19 @@ flowchart LR
 
 ## Example Output Screenshots
 
+### Airflow DAG Graph
+
 ![Airflow DAG Graph](docs/assets/airflow_dag_graph.png)
+
+### Airflow Successful Run
 
 ![Airflow Successful Run](docs/assets/airflow_grid_success.png)
 
+### Model Deployment Report
+
 ![Model Deployment Report](docs/assets/model_deployment_report.png)
+
+### Drift Monitoring Report
 
 ![Drift Monitoring Report](docs/assets/drift_monitoring_report.png)
 
