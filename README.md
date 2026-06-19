@@ -153,10 +153,7 @@ flowchart LR
 
 ---
 
-## Assets for GitHub
-
-```markdown
-![Architecture Diagram](docs/assets/architecture.png)
+## Example Output Screenshots
 
 ![Airflow DAG Graph](docs/assets/airflow_dag_graph.png)
 
@@ -165,7 +162,6 @@ flowchart LR
 ![Model Deployment Report](docs/assets/model_deployment_report.png)
 
 ![Drift Monitoring Report](docs/assets/drift_monitoring_report.png)
-```
 
 ---
 
