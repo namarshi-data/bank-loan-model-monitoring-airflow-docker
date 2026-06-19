@@ -171,6 +171,10 @@ flowchart LR
 
 ![Drift Monitoring Report](docs/assets/drift_monitoring_report.png)
 
+### PostgreSQL Monitoring Report
+
+![PostgreSQL Monitoring Report](docs/assets/postgresql_monitoring_report.png)
+
 ---
 
 ## Key Insights
