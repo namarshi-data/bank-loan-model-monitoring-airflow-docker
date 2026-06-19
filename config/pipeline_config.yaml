@@ -1,0 +1,78 @@
+project:
+  name: bank_loan_model_monitoring
+  business_owner: Retail Banking Analytics
+  use_case: Loan eligibility classification monitoring
+  responsible_use_note: Model output is a decision-support signal, not an automated lending decision.
+
+data:
+  sample_csv: data/sample/loan_applications_sample.csv
+  table_name: loan_applications
+  date_column: application_time
+  target_column: loan_status
+  positive_label: loan given
+  reference_window:
+    start: 2015-01-01
+    end: 2015-05-31
+  current_window:
+    start: 2015-06-01
+    end: 2015-12-31
+  identifier_columns:
+    - loan_id
+    - customer_id
+
+features:
+  categorical:
+    - term
+    - home_ownership
+    - purpose
+    - years_in_current_job_bucket
+  numeric:
+    - current_loan_amount
+    - credit_score
+    - monthly_debt
+    - annual_income
+    - years_of_credit_history
+    - months_since_last_delinquent
+    - no_of_open_accounts
+    - no_of_credit_problems
+    - current_credit_balance
+    - max_open_credit
+    - bankruptcies
+    - tax_liens
+    - no_of_properties
+    - no_of_cars
+    - no_of_children
+    - debt_to_income_ratio
+    - credit_utilization_ratio
+    - credit_history_to_age_proxy
+    - application_month
+    - application_quarter
+
+modeling:
+  random_state: 42
+  test_size: 0.30
+  champion_metric: roc_auc
+  approval_threshold: 0.50
+  candidates:
+    - random_forest
+    - gradient_boosting
+  minimum_performance:
+    roc_auc: 0.70
+    f1: 0.60
+
+monitoring:
+  psi_warning_threshold: 0.10
+  psi_failure_threshold: 0.25
+  ks_pvalue_threshold: 0.05
+  categorical_pvalue_threshold: 0.05
+  max_missing_rate: 0.75
+  max_duplicate_rate: 0.10
+  min_row_count: 100
+  max_auc_drop: 0.05
+  max_f1_drop: 0.08
+
+outputs:
+  model_dir: models
+  report_dir: reports
+  drift_report_dir: reports/drift
+  model_report_dir: reports/model

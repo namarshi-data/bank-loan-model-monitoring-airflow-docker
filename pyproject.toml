@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bank-loan-model-monitoring-airflow-docker"
+version = "0.1.0"
+description = "End-to-end loan eligibility model monitoring pipeline with PostgreSQL, Airflow, Docker, drift checks, and deployment reporting."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "Namarshi Palit"}]
+keywords = [
+  "mlops", "model-monitoring", "airflow", "docker", "postgresql", "banking-analytics",
+  "loan-eligibility", "data-drift", "model-drift", "risk-analytics", "python", "scikit-learn"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Database",
+]
+dependencies = [
+  "pandas>=2.2,<3.0",
+  "numpy>=1.26,<3.0",
+  "scipy>=1.12,<2.0",
+  "scikit-learn>=1.4,<2.0",
+  "SQLAlchemy>=2.0,<3.0",
+  "psycopg2-binary>=2.9,<3.0",
+  "PyYAML>=6.0,<7.0",
+  "joblib>=1.3,<2.0",
+  "requests>=2.31,<3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<9.0", "ruff>=0.5,<1.0"]
+
+[project.scripts]
+run-monitoring-pipeline = "ml_monitoring.pipelines.batch_monitoring:main"
+load-sample-data = "ml_monitoring.data.load_sample_to_postgres:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "airflow/dags"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

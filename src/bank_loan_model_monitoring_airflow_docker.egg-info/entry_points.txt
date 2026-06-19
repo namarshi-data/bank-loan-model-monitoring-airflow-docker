@@ -1,0 +1,3 @@
+[console_scripts]
+load-sample-data = ml_monitoring.data.load_sample_to_postgres:main
+run-monitoring-pipeline = ml_monitoring.pipelines.batch_monitoring:main

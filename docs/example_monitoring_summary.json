@@ -1,0 +1,83 @@
+{
+  "run_id": "20260619T041632_0ed3162e",
+  "sanity": {
+    "reference": {
+      "passed": true,
+      "row_count": 350,
+      "missing_required_columns": [],
+      "max_missing_rate": 0.7371428571428571,
+      "duplicate_rate": 0.0,
+      "checks": {
+        "row_count_check": true,
+        "required_columns_check": true,
+        "max_missing_rate_check": true,
+        "duplicate_rate_check": true,
+        "target_available_check": "True"
+      }
+    },
+    "current": {
+      "passed": true,
+      "row_count": 700,
+      "missing_required_columns": [],
+      "max_missing_rate": 0.7242857142857143,
+      "duplicate_rate": 0.0,
+      "checks": {
+        "row_count_check": true,
+        "required_columns_check": true,
+        "max_missing_rate_check": true,
+        "duplicate_rate_check": true,
+        "target_available_check": "True"
+      }
+    }
+  },
+  "champion_model": "gradient_boosting",
+  "champion_metrics": {
+    "accuracy": 0.8857142857142857,
+    "balanced_accuracy": 0.7606790799561884,
+    "precision": 0.8901098901098901,
+    "recall": 0.9759036144578314,
+    "f1": 0.9310344827586207,
+    "roc_auc": 0.9030668127053669
+  },
+  "drift_summary": {
+    "features_evaluated": 24,
+    "failed_features": 4,
+    "warning_features": 1,
+    "alert_level": "fail",
+    "retrain_recommended": true
+  },
+  "top_failed_features": [
+    {
+      "feature": "credit_score",
+      "type": "numeric",
+      "status": "fail",
+      "psi": 0.17990457838150678,
+      "ks_statistic": 0.13888786798485794,
+      "ks_pvalue": 0.026342464899448213
+    },
+    {
+      "feature": "months_since_last_delinquent",
+      "type": "numeric",
+      "status": "fail",
+      "psi": 0.27349544811870574,
+      "ks_statistic": 0.09512277539986483,
+      "ks_pvalue": 0.5831401487233097
+    },
+    {
+      "feature": "application_month",
+      "type": "numeric",
+      "status": "fail",
+      "psi": 5.557528917591972,
+      "ks_statistic": 1.0,
+      "ks_pvalue": 4.245300813998158e-289
+    },
+    {
+      "feature": "application_quarter",
+      "type": "numeric",
+      "status": "fail",
+      "psi": 0.0,
+      "ks_statistic": 0.8885714285714286,
+      "ks_pvalue": 3.6826915122629855e-196
+    }
+  ]
+}

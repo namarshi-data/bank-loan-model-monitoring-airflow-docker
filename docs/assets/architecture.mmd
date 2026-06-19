@@ -1,0 +1,13 @@
+flowchart LR
+    A[(PostgreSQL Loan Tables)] --> B[Conditional Data Extraction]
+    B --> C[Data Sanity Checks]
+    C --> D[Feature Engineering + Preprocessing]
+    D --> E[Random Forest / Gradient Boosting]
+    E --> F[Champion Model + Deployment Report]
+    D --> G[Reference vs Current Data Windows]
+    G --> H[Data Drift + Concept Drift Signals]
+    F --> I[Model Drift / Performance Monitoring]
+    H --> J{Review or Retrain?}
+    I --> J
+    J --> K[Slack Alert]
+    L[Airflow DAG] --> B

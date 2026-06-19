@@ -1,3 +1,30 @@
+Metadata-Version: 2.4
+Name: bank-loan-model-monitoring-airflow-docker
+Version: 0.1.0
+Summary: End-to-end loan eligibility model monitoring pipeline with PostgreSQL, Airflow, Docker, drift checks, and deployment reporting.
+Author: Namarshi Palit
+Keywords: mlops,model-monitoring,airflow,docker,postgresql,banking-analytics,loan-eligibility,data-drift,model-drift,risk-analytics,python,scikit-learn
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Database
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pandas<3.0,>=2.2
+Requires-Dist: numpy<3.0,>=1.26
+Requires-Dist: scipy<2.0,>=1.12
+Requires-Dist: scikit-learn<2.0,>=1.4
+Requires-Dist: SQLAlchemy<3.0,>=2.0
+Requires-Dist: psycopg2-binary<3.0,>=2.9
+Requires-Dist: PyYAML<7.0,>=6.0
+Requires-Dist: joblib<2.0,>=1.3
+Requires-Dist: requests<3.0,>=2.31
+Provides-Extra: dev
+Requires-Dist: pytest<9.0,>=8.0; extra == "dev"
+Requires-Dist: ruff<1.0,>=0.5; extra == "dev"
+Dynamic: license-file
+
 # Bank Loan Model Monitoring with Airflow and Docker
 
 End-to-end MLOps portfolio project that monitors a bank loan eligibility classification model using **Python, PostgreSQL, Airflow, Docker, scikit-learn, drift checks, deployment reporting, and Slack alerts**.
@@ -154,288 +181,57 @@ bank-loan-model-monitoring-airflow-docker/
 
 ---
 
-## Local Setup and Execution
+## How to Run Locally Without Docker
 
-This project can be run in two ways:
-
-1. **Locally without Docker** to validate the Python ML monitoring pipeline.
-2. **With Docker, PostgreSQL, and Airflow** to run the full orchestration workflow.
-
----
-
-## 1. Run Locally Without Docker
-
-Use this option first to confirm that the Python package, tests, model training, and monitoring pipeline work correctly.
-
-Open PowerShell or the VS Code terminal from the project root:
-
-```powershell
-cd "D:\Banking and Finance\Projects\bank-loan-model-monitoring-airflow-docker"
-```
-
-Create a virtual environment:
-
-```powershell
+```bash
 python -m venv .venv
-```
-
-Activate the virtual environment:
-
-```powershell
-.\.venv\Scripts\activate
-```
-
-Upgrade pip:
-
-```powershell
-python -m pip install --upgrade pip
-```
-
-Install the project with development dependencies:
-
-```powershell
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
-```
-
-Run the test suite:
-
-```powershell
-pytest
-```
-
-Expected result:
-
-```text
-5 passed
-```
-
-Run the local monitoring pipeline using the sample dataset:
-
-```powershell
 python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source sample
 ```
 
-After the pipeline runs successfully, check the following folders:
-
-```text
-models/
-reports/model/
-reports/drift/
-```
-
-Expected generated outputs include:
+Expected outputs:
 
 ```text
 models/champion_model.joblib
-reports/model/..._deployment_report.md
-reports/drift/..._monitoring_report.json
+reports/model/*_deployment_report.md
+reports/drift/*_monitoring_report.json
 ```
-
-This confirms that the ML training, evaluation, and monitoring pipeline works without PostgreSQL, Docker, or Airflow.
 
 ---
 
-## 2. Run With Docker, PostgreSQL, and Airflow
+## How to Run with Docker, PostgreSQL, and Airflow
 
-Use this option after the local Python workflow works successfully.
+Create local environment settings:
 
-Make sure Docker Desktop is open and running.
-
-From the project root:
-
-```powershell
-cd "D:\Banking and Finance\Projects\bank-loan-model-monitoring-airflow-docker"
+```bash
+cp .env.example .env
 ```
 
-Create the environment file if it does not already exist:
+Start the stack:
 
-```powershell
-if (!(Test-Path .env)) { Copy-Item .env.example .env }
-```
-
-Start the Docker stack:
-
-```powershell
+```bash
 docker compose up -d --build
 ```
-
-Check that the containers are running:
-
-```powershell
-docker compose ps
-```
-
-You should see services similar to:
-
-```text
-postgres
-airflow-db
-airflow-webserver
-airflow-scheduler
-```
-
-Open Airflow in your browser:
-
-```text
-http://localhost:8080
-```
-
-Login credentials:
-
-```text
-username: admin
-password: admin
-```
-
----
-
-## 3. Load Sample Data Into PostgreSQL
-
-After Docker containers are running, load the sample loan application data into PostgreSQL:
-
-```powershell
-docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/load_sample_to_postgres.py
-```
-
-Expected output:
-
-```text
-Loaded ... rows into loan_applications.
-```
-
----
-
-## 4. Run the PostgreSQL Monitoring Pipeline Manually
-
-After the sample data is loaded into PostgreSQL, run the monitoring pipeline from inside the Airflow container:
-
-```powershell
-docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source postgres
-```
-
-This command runs the full monitoring workflow using PostgreSQL as the data source.
-
-After the run completes, check:
-
-```text
-models/
-reports/model/
-reports/drift/
-```
-
----
-
-## 5. Run the Pipeline Through Airflow
 
 Open Airflow:
 
 ```text
 http://localhost:8080
+username: admin
+password: admin
 ```
 
-Go to the DAGs page and find:
+Load the sample data into PostgreSQL:
+
+```bash
+docker compose exec airflow-scheduler python /opt/airflow/project/scripts/load_sample_to_postgres.py
+```
+
+Trigger this DAG in Airflow:
 
 ```text
 bank_loan_model_monitoring
-```
-
-Turn the DAG toggle on.
-
-Click the play button:
-
-```text
-▶ Trigger DAG
-```
-
-After the DAG finishes, check the generated outputs:
-
-```text
-models/
-reports/model/
-reports/drift/
-```
-
----
-
-## Full Workflow From Scratch
-
-Use the following sequence to run the complete project from a fresh setup:
-
-```powershell
-cd "D:\Banking and Finance\Projects\bank-loan-model-monitoring-airflow-docker"
-
-python -m venv .venv
-.\.venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -e ".[dev]"
-
-pytest
-
-python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source sample
-
-if (!(Test-Path .env)) { Copy-Item .env.example .env }
-
-docker compose up -d --build
-docker compose ps
-
-docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/load_sample_to_postgres.py
-
-docker compose exec -w /opt/airflow/project airflow-scheduler python scripts/run_local_monitoring.py --config config/pipeline_config.yaml --source postgres
-```
-
-Then trigger the DAG from the Airflow UI:
-
-```text
-http://localhost:8080
-DAG: bank_loan_model_monitoring
-Click ▶ Trigger DAG
-```
-
----
-
-## Stopping and Restarting the Project
-
-When the work is finished, stop the containers safely:
-
-```powershell
-docker compose stop
-```
-
-To start the containers again later:
-
-```powershell
-docker compose start
-```
-
-To remove the containers while keeping named volumes:
-
-```powershell
-docker compose down
-```
-
-Avoid using the following command unless you intentionally want to delete database volumes:
-
-```powershell
-docker compose down -v
-```
-
----
-
-## Data Notes
-
-For local testing, the project uses:
-
-```text
-data/sample/loan_applications_sample.csv
-```
-
-The `data/raw/` folder is reserved for original source files and project organization.
-
-For this project, keep only the following raw files:
-
-```text
-data/raw/loan_applications_2015_01_01_to_2015_05_31_reference.csv
-data/raw/loan_applications_2015_06_01_to_2015_12_31_monitoring.csv
 ```
 
 ---
